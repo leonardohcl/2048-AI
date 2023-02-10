@@ -83,7 +83,7 @@ class Board:
 
     def get_square_valid_movement(self, row: int, col: int, dir: MoveDirection):
         sqr = self.get_square(row, col)
-        if sqr == None or sqr.value == 0:
+        if sqr == None or sqr.value == 0 or sqr.is_wall:
             return None
 
         neighbor = self.get_square_neighbor(row, col, dir)
@@ -126,6 +126,7 @@ class Board:
         arr = np.array([sqr.base_2 for sqr in self.squares])
         return (
             str(arr.reshape((self.height, self.width)))
+            .replace("-1", "x")
             .replace("[", "")
             .replace("]", "")
         )

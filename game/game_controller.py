@@ -52,6 +52,14 @@ class GameController:
         selected = choice(empty)
         selected.value = choices([1, 2], weights=[0.1, 0.9], k=1)[0]
 
+    def spawn_wall(self):
+        empty = self.board.empty_squares()
+        if len(empty) == 0:
+            return
+
+        selected = choice(empty)
+        selected.value = -1
+
     def is_winner(self):
         return self.board.highest_block() >= self.winning_block
 
