@@ -124,7 +124,7 @@ class Agent2048:
 
             state_new = self.get_state(self.game)
 
-            print_game(self.game, f"Game {self.n_games + 1} (avg error: {error:.4f})")
+            print_game(self.game, f"Game {self.n_games + 1}/{max_games} (avg error: {error:.4f})")
 
             game_over = self.game.is_winner() or self.game.is_game_over()
             reward = self.get_reward(

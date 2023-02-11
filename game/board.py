@@ -123,10 +123,10 @@ class Board:
             self.load_preset(preset)
 
     def __str__(self) -> str:
-        arr = np.array([sqr.base_2 for sqr in self.squares])
+        arr = np.array([sqr.base_2 if sqr.value > 0 else ' ' for sqr in self.squares])
         return (
             str(arr.reshape((self.height, self.width)))
-            .replace("-1", "x")
+            .replace("'", "")
             .replace("[", "")
             .replace("]", "")
         )

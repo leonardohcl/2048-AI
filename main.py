@@ -1,21 +1,21 @@
 from game import GameController, MoveDirection
 from AI import Agent2048
-from utils import normalize_board
+from utils import normalize_board, get_zig_zag
 import torch
 import time
 import math
 import numpy as np
 
-MAX_GAMES = 1000
+MAX_GAMES = 50
 MAX_ERROR = 0.001
-GAMES_EXPLORATION_PERCENT = 0.3
-RANDOM_MOVE_PROBABILITY = 0.4
-LEARNING_RATE = 0.01
+GAMES_EXPLORATION_PERCENT = 0.15
+RANDOM_MOVE_PROBABILITY = 0.3
+LEARNING_RATE = 0.005
 GAME_WIDTH = 4
 GAME_HEIGHT = 4
 WINNING_BLOCK = 11
 
-LAYERS = [256, 32]
+LAYERS = [32]
 
 GAME_LENGTH = GAME_WIDTH * GAME_HEIGHT
 
@@ -23,24 +23,12 @@ GAME_LENGTH = GAME_WIDTH * GAME_HEIGHT
 def get_state(game: GameController):
     board = normalize_board(game.board.flat(), WINNING_BLOCK)
 
-    future_sight = []
-    for i in range(4):
-        move = MoveDirection(i)
-        if move in game.can_move:
-            (
-                future_board,
-                future_points,
-                future_blocks_moved,
-                future_merges,
-            ) = game.get_next_board(move)
+    available_moves = [MoveDirection(i) in game.can_move for i in range(4)]
 
-            future_flat_board = normalize_board(future_board.flat(), WINNING_BLOCK)
+    return board + available_moves
 
-            future_sight += future_flat_board + [1]
-        else:
-            future_sight += list(np.zeros(GAME_LENGTH + 1))
 
-    return board + future_sight
+TARGET = normalize_board(get_zig_zag(GAME_WIDTH, GAME_HEIGHT))
 
 
 def get_reward(
@@ -52,16 +40,16 @@ def get_reward(
     win: bool,
     game_over: bool,
 ):
-    previous_best = max(prev_state)
-    next_best = max(next_state)
-    highest_increase_points = (
-        next_state / GAME_LENGTH if next_best > previous_best else 0
-    )
-    merge_points = float(merges) / (0.5 * GAME_LENGTH)
-    game_over_penalty = -1 if game_over else 0
-    win_reward = 1 if win else 0
-
-    return highest_increase_points + merge_points + win_reward + game_over_penalty
+    board = normalize_board(next_state, WINNING_BLOCK)
+    diff = [
+        1
+        if board[i] == TARGET[i]
+        else TARGET[i]
+        if board[i] > TARGET[i]
+        else -TARGET[i]
+        for i in range(GAME_LENGTH)
+    ]
+    return sum(diff)
 
 
 game = GameController()
