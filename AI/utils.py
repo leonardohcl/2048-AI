@@ -1,24 +1,7 @@
 from game import GameController, MoveDirection, Board
 import torch
 from matplotlib import pyplot as plt
-import os
 import numpy as np
-
-
-def print_game(game: GameController, name: str = None):
-    os.system("cls")
-    if name != None:
-        print(name)
-    print(game)
-
-
-def play_randomly(game: GameController, max_moves=0):
-    moves = 0
-    can_move = lambda moves: moves <= max_moves if max_moves > 0 else lambda moves: True
-    while can_move(moves) and not game.is_winner() and not game.is_game_over():
-        game.move(game.get_random_move())
-        moves += 1
-
 
 def output2move(output: torch.tensor, game: GameController):
     invalid_moves = list(

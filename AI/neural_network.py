@@ -13,8 +13,9 @@ class Linear_2048Qnet(nn.Module):
         layers = []
         for i in range(len(layer_sizes) - 1):
             layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
+            if(i > 0):
+                layers.append(nn.ReLU())
 
-        layers.append(nn.ReLU())
         layers.append(nn.Linear(layer_sizes[-1], 4))
         layers.append(nn.Softmax(dim=0))
 

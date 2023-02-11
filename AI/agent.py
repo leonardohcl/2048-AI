@@ -4,7 +4,8 @@ import random
 import torch
 import numpy as np
 from .neural_network import Linear_2048Qnet, QTrainer
-from .utils import output2move, plot_training, print_game
+from .utils import output2move, plot_training
+from helpers import print_game
 from typing import Callable
 
 
@@ -18,21 +19,21 @@ class Agent2048:
         brain_structure=[],
         learning_rate=0.001,
         gamma=0.9,
+        epsillon=0.9,
+        epsillon_decay=0.95,
         max_memory=100_000,
-        batch_size=1000,
+        batch_size=1024,
         optmizer=torch.optim.SGD,
         criterion=torch.nn.MSELoss,
-        exploration_heavy_epochs=40,
-        random_exploration_probability=0.5,
     ) -> None:
         self.game = game
         self.get_state = get_state
         self.get_reward = get_reward
         self.n_games = 0
         self.learning_rate = learning_rate
-        self.exploration_heavy_epochs = exploration_heavy_epochs  # randomness
-        self.random_exploration_proabibility = random_exploration_probability
         self.gamma = gamma  # discount rate
+        self.epsillon = epsillon  # randomness prob
+        self.epsillon_decay = epsillon_decay  # decrease in randomness
         self.batch_size = batch_size
         self.memory = deque(maxlen=max_memory)  # First-in-First-Out queue
         self.model = Linear_2048Qnet(
@@ -68,17 +69,14 @@ class Agent2048:
         return self.trainer.train_step(state, action, reward, next_state, game_over)
 
     def get_action(self, state):
-        # random moves : tradeoff exploration vs exploitation
-        random_move_odds = (
-            self.exploration_heavy_epochs - self.n_games
-        ) * self.random_exploration_proabibility
-
-        if random.random() < random_move_odds:
+        if random.random() < self.epsillon:
             move = self.game.get_random_move()
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model.forward(state0)
             move = output2move(prediction, self.game)
+
+        self.epsillon *= self.epsillon_decay
 
         return move
 
@@ -124,7 +122,10 @@ class Agent2048:
 
             state_new = self.get_state(self.game)
 
-            print_game(self.game, f"Game {self.n_games + 1}/{max_games} (avg error: {error:.4f})")
+            print_game(
+                self.game,
+                f"Game {self.n_games + 1}/{max_games}\nmean_error: {total_error/(self.n_games+1):.4f}\nrandomness: {self.epsillon:.4f}",
+            )
 
             game_over = self.game.is_winner() or self.game.is_game_over()
             reward = self.get_reward(
