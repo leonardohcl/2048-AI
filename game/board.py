@@ -106,7 +106,7 @@ class Board:
         if sqr.value == value:
             sqr.value += 1
             sqr.merged = True
-            return sqr.value
+            return sqr.base_2
         sqr.value = value
         return 0
 
@@ -123,7 +123,7 @@ class Board:
             self.load_preset(preset)
 
     def __str__(self) -> str:
-        arr = np.array([sqr.value if sqr.value > 0 else ' ' for sqr in self.squares])
+        arr = np.array([sqr.base_2 if sqr.value > 0 else ' ' for sqr in self.squares])
         return (
             str(arr.reshape((self.height, self.width)))
             .replace("'", "")
