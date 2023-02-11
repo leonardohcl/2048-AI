@@ -43,14 +43,14 @@ class GameController:
         for dir in MoveDirection:
             self._update_can_move(dir)
 
-    def _spawn(self, board: Board):
+    def spawn(self, board: Board):
         empty = board.empty_squares()
 
         if len(empty) == 0:
             return
 
         selected = choice(empty)
-        selected.value = choices([1, 2], weights=[0.1, 0.9], k=1)[0]
+        selected.value = choices([1, 2], weights=[0.9, 0.1], k=1)[0]
 
     def spawn_wall(self):
         empty = self.board.empty_squares()
@@ -79,13 +79,15 @@ class GameController:
     def start(self):
         self.score = 0
         self._clear_board()
-        self._spawn(self.board)
-        self._spawn(self.board)
+        self.spawn(self.board)
+        self.spawn(self.board)
         self._update_valid_moves()
 
     def get_next_board(self, dir: MoveDirection):
         next_board = Board(self.width, self.height)
         points = 0
+        merges = 0
+        blocks_moved = 0
 
         field, sorting_order = SORTING_CONFIG[dir]
 
@@ -113,33 +115,41 @@ class GameController:
                     continue
 
                 next_board.move_square_value(sqr.row, sqr.col, 0)
-                points += next_board.move_square_value(
+                points_from_move = next_board.move_square_value(
                     move_sqr.row, move_sqr.col, sqr.value
                 )
+                
+                blocks_moved += 1
+                
+                if points_from_move > 0:
+                    merges += 1
+                    points += points_from_move
 
-        return next_board, points
+        return next_board, points, blocks_moved, merges
 
     def move(self, dir: MoveDirection, spawn_after=True):
         if dir not in self.can_move:
-            return
+            return 0
 
-        next_board, points = self.get_next_board(dir)
-        
+        next_board, points, blocks_moved, merges = self.get_next_board(dir)
+
         self.score += points
 
         if spawn_after:
-            self._spawn(next_board)
+            self.spawn(next_board)
         self.board = next_board
         self._update_state()
+        
+        return points, blocks_moved, merges
 
     def get_random_move(self):
         return choice(self.can_move)
 
-    def __init__(self, width=4, height=4, winning_block=2048):
+    def __init__(self, width=4, height=4, winning_block=11):
         self.winning_block = winning_block
         self.score = 0
         self.can_move = []
-        self.board = Board(height, width)
+        self.board = Board(width,height)
 
     def __str__(self) -> str:
         return f"score:{self.score} | win: {self.is_winner()} | game over: {self.is_game_over()} \n {self.board}"

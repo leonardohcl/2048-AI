@@ -106,7 +106,7 @@ class Board:
         if sqr.value == value:
             sqr.value += 1
             sqr.merged = True
-            return sqr.base_2
+            return sqr.value
         sqr.value = value
         return 0
 

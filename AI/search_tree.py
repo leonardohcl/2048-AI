@@ -1,16 +1,9 @@
 from game import GameController, MoveDirection
-from .utils import play_randomly
+from .utils import play_randomly, print_game
 from joblib import Parallel, delayed
 import math
 import multiprocessing
 import os
-
-
-def print_game(game: GameController):
-    os.system("cls")
-    print(game)
-
-
 class MonteCarloSearchTree:
     @staticmethod
     def play(
