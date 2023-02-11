@@ -1,11 +1,11 @@
-from game import GameController, MoveDirection, Board
+from game import GameController
 from AI import MonteCarloSearchTree
 from time import time
 
 game = GameController(4, 4, 11)
 
 start = time()
-MonteCarloSearchTree.play(game, num_simulations=200, look_ahead=0, print_gameplay=True)
+MonteCarloSearchTree.play(game, num_simulations=50, look_ahead=1, print_gameplay=True)
 total = time() - start
 minutes = total // 60
 secs = total % 60
