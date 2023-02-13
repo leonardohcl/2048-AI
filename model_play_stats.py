@@ -1,5 +1,7 @@
-from game import GameController, VALUE_MAP, play_randomly
+from game import GameController, VALUE_MAP
+from AI import Linear_2048Qnet, play_with_model, get_state_size, get_model_name
 import numpy as np
+import torch
 import statistics
 from tqdm import tqdm
 import multiprocessing
@@ -13,13 +15,18 @@ scores = []
 
 
 GAME_RUNS = 10_000
-GAME_WIDTH = 8
-GAME_HEIGHT = 8
-WINNING_BLOCK = 13
+GAME_WIDTH = 4
+GAME_HEIGHT = 4
+WINNING_BLOCK = 12
+
+MODEL_HIDDEN_LAYERS = [512,128]
+STATE_SIZE= get_state_size(GAME_WIDTH,GAME_HEIGHT)
+MODEL = Linear_2048Qnet(input_size=STATE_SIZE, hidden_layers=MODEL_HIDDEN_LAYERS)
+MODEL.load_state_dict(torch.load(f'model/{get_model_name(GAME_WIDTH,GAME_HEIGHT,MODEL_HIDDEN_LAYERS)}'))
 
 num_cores = multiprocessing.cpu_count()
 output = Parallel(n_jobs=num_cores)(
-    delayed(play_randomly)(GameController(GAME_WIDTH, GAME_HEIGHT, WINNING_BLOCK))
+    delayed(play_with_model)(MODEL, GameController(GAME_WIDTH, GAME_HEIGHT, WINNING_BLOCK))
     for _ in tqdm(range(GAME_RUNS), desc=f"playing {GAME_WIDTH}x{GAME_HEIGHT}")
 )
 
@@ -29,7 +36,7 @@ for block in highest_blocks:
     for i in range(block + 1):
         total_block_reached[i] += 1
 
-print(f"random play statistics ({GAME_RUNS} games played)\n")
+print(f"model play statistics ({GAME_RUNS} games played)\n")
 
 
 move_avg = statistics.mean(moves)

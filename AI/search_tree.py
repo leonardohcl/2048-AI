@@ -1,9 +1,7 @@
-from game import GameController, MoveDirection
-from helpers import play_randomly, print_game
+from game import GameController, MoveDirection, play_randomly, print_game
 from joblib import Parallel, delayed
 import math
 import multiprocessing
-import os
 
 
 class MonteCarloSearchTree:

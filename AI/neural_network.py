@@ -1,7 +1,8 @@
 import torch
+from game import GameController
 import os
 from torch import nn, optim
-from copy import deepcopy
+from .utils import output2move
 import numpy as np
 
 
@@ -24,7 +25,14 @@ class Linear_2048Qnet(nn.Module):
     def forward(self, data):
         logits = self.layers(data)
         return logits
+    
+    def predict(self, state:list, game:GameController):
+        self.eval()
+        state0 = torch.tensor(state, dtype=torch.float)
+        prediction = self.forward(state0)
+        return output2move(prediction, game)
 
+        
     def save(self, file_name="2048_Qnet"):
         model_folder_path = "./model"
         if not os.path.exists(model_folder_path):

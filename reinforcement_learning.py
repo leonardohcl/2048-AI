@@ -1,31 +1,21 @@
-from game import GameController, MoveDirection
-from AI import Agent2048
+from game import GameController
+from AI import Agent2048, get_state, get_state_size, get_model_name
 import torch
 import time
-import math
-import numpy as np
 
-MAX_GAMES = 100
+MAX_GAMES = 250
 MAX_ERROR = 0.001
-RANDOM_PROBABILITY = 0.98
+RANDOM_PROBABILITY = 0.8
 RANDOM_PROBABILITY_DECAY = 0.999
-GAMES_EXPLORATION_PERCENT = 0.15
 LEARNING_RATE = 0.005
-GAME_WIDTH = 3
+GAME_WIDTH = 5
 GAME_HEIGHT = 3
-WINNING_BLOCK = 8
+WINNING_BLOCK = 11
+INPUT_SIZE = get_state_size(GAME_WIDTH, GAME_HEIGHT)
 
 LAYERS = [512,128]
 
 GAME_LENGTH = GAME_WIDTH * GAME_HEIGHT
-
-
-def get_state(game: GameController):
-    board = game.board.flat()
-
-    available_moves = [MoveDirection(i) in game.can_move for i in range(4)]
-
-    return board + available_moves
 
 
 def get_reward(
@@ -51,10 +41,6 @@ def get_reward(
     return sum(rewards)
 
 
-game = GameController(GAME_WIDTH, GAME_HEIGHT, WINNING_BLOCK)
-game.start()
-INPUT_SIZE = len(get_state(game))
-
 agent = Agent2048(
     GameController(GAME_WIDTH, GAME_HEIGHT, WINNING_BLOCK),
     get_state=get_state,
@@ -73,7 +59,6 @@ start = time.time()
 agent.train(max_games=MAX_GAMES, max_error=MAX_ERROR)
 elapsed = time.time() - start
 
-agent.model.save()
 m = elapsed // 60
 s = elapsed % 60
 

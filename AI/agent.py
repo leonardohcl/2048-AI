@@ -1,11 +1,10 @@
-from game import GameController, MoveDirection
+from game import GameController, MoveDirection, print_game
 from collections import deque
 import random
 import torch
 import numpy as np
-from .neural_network import Linear_2048Qnet, QTrainer
-from .utils import output2move, plot_training
-from helpers import print_game
+from AI import Linear_2048Qnet, QTrainer
+from .utils import output2move, plot_training,get_model_name
 from typing import Callable
 
 
@@ -36,6 +35,7 @@ class Agent2048:
         self.epsillon_decay = epsillon_decay  # decrease in randomness
         self.batch_size = batch_size
         self.memory = deque(maxlen=max_memory)  # First-in-First-Out queue
+        self.brain_structure = brain_structure
         self.model = Linear_2048Qnet(
             input_size=state_size, hidden_layers=brain_structure
         )
@@ -153,7 +153,7 @@ class Agent2048:
                 score = self.game.score
                 if score > record:
                     record = score
-                    self.model.save()
+                    self.model.save(get_model_name(self.game.width,self.game.height,self.brain_structure))
 
                 scores.append(score)
                 total_score += score
